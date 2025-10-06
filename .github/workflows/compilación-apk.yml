@@ -1,31 +1,27 @@
 name: Build Flet APK
 
 on:
-  workflow_dispatch:  # Se ejecuta manualmente desde GitHub Actions
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Descargar tu código
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Configurar Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # 3. Configurar Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.3'
           channel: 'stable'
 
-      # 4. Instalar dependencias necesarias (Java, licencias Android, Flet)
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -33,11 +29,12 @@ jobs:
           yes | flutter doctor --android-licenses
           pip install flet==0.23.1
 
-      # 5. Compilar la app como APK
       - name: Build APK
-        run: flet build apk
+        run: flet build apk --module-name main
+        env:
+          ANDROID_COMPILE_SDK: 35
+          ANDROID_BUILD_TOOLS_VERSION: 35.0.0
 
-      # 6. Subir el APK generado como artefacto
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
