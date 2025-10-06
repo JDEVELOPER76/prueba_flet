@@ -1,14 +1,14 @@
 name: Build Flet APK
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Permite ejecutar manualmente desde GitHub
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -16,15 +16,23 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Flet (compatible version)
+      - name: Set up Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.2'
+          channel: 'stable'
+
+      - name: Accept Android licenses (evita errores)
+        run: |
+          flutter doctor --android-licenses <<< $'y\ny\ny\ny\ny\ny\ny'
+
+      - name: Install Flet (versión compatible con Flutter 3.29)
         run: pip install flet==0.24.1
 
       - name: Build APK
         run: flet build apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload APK
+      - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: flet-apk
