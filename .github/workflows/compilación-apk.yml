@@ -29,8 +29,18 @@ jobs:
           yes | flutter doctor --android-licenses
           pip install flet==0.23.1
 
+      - name: Generate Flutter project (without building)
+        run: flet build apk --module-name main --no-build
+
+      - name: Fix wakelock_plus version
+        run: |
+          cd build/flutter
+          flutter pub upgrade wakelock_plus
+
       - name: Build APK
-        run: flet build apk --module-name main
+        run: |
+          cd build/flutter
+          flutter build apk --release
         env:
           ANDROID_COMPILE_SDK: 35
           ANDROID_BUILD_TOOLS_VERSION: 35.0.0
@@ -39,5 +49,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flet-apk
-          path: build/apk/*.apk
+          path: build/flutter/build/app/outputs/apk/release/*.apk
           
