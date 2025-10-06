@@ -1,44 +1,46 @@
 name: Build Flet APK
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Se ejecuta manualmente desde GitHub Actions
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Aumentamos recursos (opcional en runners públicos, pero ayuda)
-    env:
-      FLUTTER_ROOT: ${{ github.workspace }}/flutter
 
     steps:
+      # 1. Descargar tu código
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Configurar Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Set up Flutter (versión compatible)
+      # 3. Configurar Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.3'  # Versión más estable para Flet
+          flutter-version: '3.24.3'
           channel: 'stable'
 
-      - name: Accept Android licenses
+      # 4. Instalar dependencias necesarias (Java, licencias Android, Flet)
+      - name: Install dependencies
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sudo apt-get update
+          sudo apt-get install -y openjdk-17-jdk
+          yes | flutter doctor --android-licenses
+          pip install flet==0.23.1
 
-      - name: Install Flet (versión probada)
-        run: pip install flet==0.23.1
-
+      # 5. Compilar la app como APK
       - name: Build APK
         run: flet build apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # 6. Subir el APK generado como artefacto
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: flet-apk
           path: build/apk/*.apk
+          
